@@ -11,6 +11,7 @@ import 'package:immich_mobile/providers/infrastructure/db.provider.dart';
 import 'package:immich_mobile/providers/infrastructure/remote_album.provider.dart';
 import 'package:immich_mobile/providers/user.provider.dart';
 import 'package:immich_mobile/widgets/common/user_circle_avatar.dart';
+import 'package:immich_mobile/widgets/common/search_field.dart';
 
 // TODO: Refactor this provider when we have user provider/service/repository pattern in place
 final driftUsersProvider = FutureProvider.autoDispose<List<UserDto>>((ref) async {
@@ -132,28 +133,46 @@ class DriftUserSelectionPage extends HookConsumerWidget {
           ),
         ],
       ),
-      body: suggestedShareUsers.widgetWhen(
-        onData: (users) {
-          // Get shared users for this album from the database
-          final sharedUsers = ref.watch(remoteAlbumSharedUsersProvider(album.id));
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SearchField(
+              hintText: 'search'.tr(),
+              prefixIcon: const Icon(Icons.search_rounded),
+              suffixIcon: searchController.text.isNotEmpty
+                  ? IconButton(icon: const Icon(Icons.clear_rounded), onPressed: onClearSearch)
+                  : null,
+              onChanged: (query) {},
+            ),
+          ),
+          Expanded(
+            child: suggestedShareUsers.widgetWhen(
+              onData: (users) {
+                // Get shared users for this album from the database
+                final sharedUsers = ref.watch(remoteAlbumSharedUsersProvider(album.id));
 
-          return sharedUsers.when(
-            data: (albumSharedUsers) {
-              // Filter out users that are already shared with this album and the owner
-              final filteredUsers = users.where((user) {
-                return !albumSharedUsers.any((sharedUser) => sharedUser.id == user.id) && user.id != album.ownerId;
-              }).toList();
+                return sharedUsers.when(
+                  data: (albumSharedUsers) {
+                    // Filter out users that are already shared with this album and the owner
+                    final filteredUsers = users.where((user) {
+                      return !albumSharedUsers.any((sharedUser) => sharedUser.id == user.id) &&
+                          user.id != album.ownerId;
+                    }).toList();
 
-              return buildUserList(filteredUsers);
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) {
-              // If we can't load shared users, just filter out the owner
-              final filteredUsers = users.where((user) => user.id != album.ownerId).toList();
-              return buildUserList(filteredUsers);
-            },
-          );
-        },
+                    return buildUserList(filteredUsers);
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) {
+                    // If we can't load shared users, just filter out the owner
+                    final filteredUsers = users.where((user) => user.id != album.ownerId).toList();
+                    return buildUserList(filteredUsers);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
