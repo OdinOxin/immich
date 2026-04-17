@@ -162,21 +162,26 @@ class DriftAlbumOptionsPage extends HookConsumerWidget {
 
     buildSharedUsersList() {
       return sharedUsersAsync.maybeWhen(
-        data: (sharedUsers) => ListView.builder(
-          primary: false,
-          shrinkWrap: true,
-          itemCount: sharedUsers.length,
-          itemBuilder: (context, index) {
-            final user = sharedUsers[index];
-            return ListTile(
-              leading: UserCircleAvatar(user: user),
-              title: Text(user.name, style: const TextStyle(fontWeight: FontWeight.w500)),
-              subtitle: Text(user.email, style: TextStyle(color: context.colorScheme.onSurfaceSecondary)),
-              trailing: userId == user.id || isOwner ? const Icon(Icons.more_horiz_rounded) : const SizedBox(),
-              onTap: userId == user.id || isOwner ? () => handleUserClick(user) : null,
-            );
-          },
-        ),
+        data: (sharedUsers) {
+          final sortedUsers = sharedUsers.toList()
+            ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+          return ListView.builder(
+            primary: false,
+            shrinkWrap: true,
+            itemCount: sortedUsers.length,
+            itemBuilder: (context, index) {
+              final user = sortedUsers[index];
+              return ListTile(
+                leading: UserCircleAvatar(user: user),
+                title: Text(user.name, style: const TextStyle(fontWeight: FontWeight.w500)),
+                subtitle: Text(user.email, style: TextStyle(color: context.colorScheme.onSurfaceSecondary)),
+                trailing: userId == user.id || isOwner ? const Icon(Icons.more_horiz_rounded) : const SizedBox(),
+                onTap: userId == user.id || isOwner ? () => handleUserClick(user) : null,
+              );
+            },
+          );
+        },
         orElse: () => const Center(child: CircularProgressIndicator()),
       );
     }
