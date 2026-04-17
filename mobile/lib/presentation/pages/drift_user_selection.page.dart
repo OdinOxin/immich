@@ -19,22 +19,24 @@ final driftUsersProvider = FutureProvider.autoDispose<List<UserDto>>((ref) async
 
   final userEntities = await drift.managers.userEntity.get();
 
-  final users = userEntities
-      .map(
-        (entity) => UserDto(
-          id: entity.id,
-          name: entity.name,
-          email: entity.email,
-          isPartnerSharedBy: false,
-          isPartnerSharedWith: false,
-          avatarColor: entity.avatarColor,
-          memoryEnabled: true,
-          inTimeline: true,
-          profileChangedAt: entity.profileChangedAt,
-          hasProfileImage: entity.hasProfileImage,
-        ),
-      )
-      .toList();
+  final users =
+      userEntities
+          .map(
+            (entity) => UserDto(
+              id: entity.id,
+              name: entity.name,
+              email: entity.email,
+              isPartnerSharedBy: false,
+              isPartnerSharedWith: false,
+              avatarColor: entity.avatarColor,
+              memoryEnabled: true,
+              inTimeline: true,
+              profileChangedAt: entity.profileChangedAt,
+              hasProfileImage: entity.hasProfileImage,
+            ),
+          )
+          .toList()
+        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
   users.removeWhere((u) => currentUser?.id == u.id);
 
